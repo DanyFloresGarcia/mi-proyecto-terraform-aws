@@ -9,10 +9,6 @@ resource "aws_instance" "nginx-server" {
   ami           = "ami-029a761f237195c2c"
   instance_type = "t3.micro"
 
-  tags = {
-    Name = "NginxExampleInstance"
-  }
-
   user_data = <<-EOF
               #!/bin/bash
               sudo yum install -y nginx
@@ -22,13 +18,33 @@ resource "aws_instance" "nginx-server" {
 
   key_name               = aws_key_pair.nginx-server-ssh.key_name
   vpc_security_group_ids = [aws_security_group.nginx-server-sg.id]
+
+  tags = {
+    Name = "nginx-server"
+    Environment = "Development"
+    Owner = "danyfloresgarcia18@gmail.com"
+    Team = "DevOps"
+    Project = "personal-website"
+  }
 }
 
+
+### ssh key pair and security group ######
+# Create ssh ssh-keygen -t rsa -b 2048 -f "nginx-server.key"
 resource "aws_key_pair" "nginx-server-ssh" {
   key_name   = "nginx-server-ssh"
   public_key = file("nginx-server.key.pub")
+
+  tags = {
+    Name = "nginx-server-ssh"
+    Environment = "Development"
+    Owner = "danyfloresgarcia18@gmail.com"
+    Team = "DevOps"
+    Project = "personal-website"
+  }
 }
 
+### SG ####
 resource "aws_security_group" "nginx-server-sg" {
   name = "nginx-server-sg"
 
@@ -51,5 +67,13 @@ resource "aws_security_group" "nginx-server-sg" {
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "nginx-server-sg"
+    Environment = "Development"
+    Owner = "danyfloresgarcia18@gmail.com"
+    Team = "DevOps"
+    Project = "personal-website"
   }
 }
