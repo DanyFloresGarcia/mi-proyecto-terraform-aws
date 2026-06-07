@@ -1,3 +1,25 @@
+### variables ######
+
+variable "ami-id" {
+  description = "The AMI ID to use for the EC2 instance."
+  default     = "ami-029a761f237195c2c"
+}
+
+variable "instance-type" {
+  description = "The instance type to use for the EC2 instance."
+  default     = "t3.micro"
+}
+
+variable "server-name" {
+  description = "The name of the nginx server instance."
+  default     = "nginx-server"
+}
+
+variable "environment" {
+  description = "The environment for the nginx server instance."
+  default     = "Development"
+}
+
 ### provider ######
 provider "aws" {
   region = "us-west-2"
@@ -6,8 +28,8 @@ provider "aws" {
 
 ### resource ######
 resource "aws_instance" "nginx-server" {
-  ami           = "ami-029a761f237195c2c"
-  instance_type = "t3.micro"
+  ami           = var.ami-id
+  instance_type = var.instance-type
 
   user_data = <<-EOF
               #!/bin/bash
@@ -20,8 +42,8 @@ resource "aws_instance" "nginx-server" {
   vpc_security_group_ids = [aws_security_group.nginx-server-sg.id]
 
   tags = {
-    Name = "nginx-server"
-    Environment = "Development"
+    Name = var.server-name
+    Environment = var.environment
     Owner = "danyfloresgarcia18@gmail.com"
     Team = "DevOps"
     Project = "personal-website"
@@ -30,14 +52,14 @@ resource "aws_instance" "nginx-server" {
 
 
 ### ssh key pair and security group ######
-# Create ssh ssh-keygen -t rsa -b 2048 -f "nginx-server.key"
+# Create ssh: ssh-keygen -t rsa -b 2048 -f "nginx-server.key"
 resource "aws_key_pair" "nginx-server-ssh" {
-  key_name   = "nginx-server-ssh"
-  public_key = file("nginx-server.key.pub")
+  key_name   = "${var.server-name}-ssh"
+  public_key = file("${var.server-name}.key.pub")
 
   tags = {
-    Name = "nginx-server-ssh"
-    Environment = "Development"
+    Name = "${var.server-name}-ssh"
+    Environment = var.environment
     Owner = "danyfloresgarcia18@gmail.com"
     Team = "DevOps"
     Project = "personal-website"
@@ -46,7 +68,7 @@ resource "aws_key_pair" "nginx-server-ssh" {
 
 ### SG ####
 resource "aws_security_group" "nginx-server-sg" {
-  name = "nginx-server-sg"
+  name = "${var.server-name}-sg"
 
   ingress {
     from_port   = 22
@@ -70,10 +92,26 @@ resource "aws_security_group" "nginx-server-sg" {
   }
 
   tags = {
-    Name = "nginx-server-sg"
-    Environment = "Development"
+    Name = "${var.server-name}-sg"
+    Environment = var.environment
     Owner = "danyfloresgarcia18@gmail.com"
     Team = "DevOps"
     Project = "personal-website"
   }
+}
+
+### output ######
+output "server_public_ip" {
+  value = aws_instance.nginx-server.public_ip
+  description = "The public IP address of the nginx server instance."
+}
+
+output "server_public_dns" {
+  value = aws_instance.nginx-server.public_dns
+  description = "The public DNS name of the nginx server instance."
+}
+
+output "server_private_ip" {
+  value = aws_instance.nginx-server.private_ip
+  description = "The private IP address of the nginx server instance."
 }
